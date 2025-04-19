@@ -1,34 +1,26 @@
 import React from 'react';
-import { ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native'; // Added ActivityIndicator
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { DraxProvider, DraxView, DraxList } from 'react-native-drax';
-import ProductCard from './ProductCard';
-import { updateProductCategory } from '../services/api';
+import ProductCard from './ProductCard'; // Verify this path is correct
 
-const KanbanBoard = ({ products = [], categories = [], onUpdate, loading }) => {
+const KanbanBoard = ({ products = [], categories = [], onUpdate }) => {
+    const safeCategories = Array.isArray(categories) ? categories : [];
+
     const handleDragDrop = async (productId, newCategory) => {
         try {
             await updateProductCategory(productId, newCategory);
-            onUpdate();
+            onUpdate?.();
         } catch (error) {
-            console.error('Update failed:', error);
+            console.error('Drag failed:', error);
         }
     };
-
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" />
-                <Text>Loading board...</Text>
-            </View>
-        );
-    }
 
     return (
         <DraxProvider>
             <ScrollView horizontal contentContainerStyle={styles.container}>
-                {['Uncategorized', ...categories.map(cat => cat.name)].map(category => (
+                {['Uncategorized', ...safeCategories.map(c => c?.name || '')].map((category, index) => (
                     <DraxView
-                        key={category}
+                        key={`${category}-${index}`}
                         style={styles.column}
                         receivingStyle={styles.receiving}
                         onReceiveDragDrop={({ dragged }) =>
@@ -38,9 +30,11 @@ const KanbanBoard = ({ products = [], categories = [], onUpdate, loading }) => {
                     >
                         <Text style={styles.categoryTitle}>{category}</Text>
                         <DraxList
-                            data={products.filter(p => p.category === category)}
-                            renderItemContent={({ item }) => <ProductCard product={item} />}
-                            keyExtractor={item => item._id}
+                            data={products.filter(p => p?.category === category) || []}
+                            renderItemContent={({ item }) => (
+                                <ProductCard product={item} />
+                            )}
+                            keyExtractor={(item) => item._id || Math.random().toString()}
                         />
                     </DraxView>
                 ))}
@@ -51,29 +45,24 @@ const KanbanBoard = ({ products = [], categories = [], onUpdate, loading }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 10
+        padding: 10,
     },
     column: {
         width: 250,
         backgroundColor: '#fff',
         borderRadius: 8,
-        marginRight: 12,
-        padding: 12
+        marginRight: 10,
+        padding: 10,
     },
     receiving: {
         borderWidth: 2,
-        borderColor: '#3b82f6'
+        borderColor: '#3b82f6',
     },
     categoryTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 8
+        marginBottom: 8,
     },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    }
 });
 
 export default KanbanBoard;
