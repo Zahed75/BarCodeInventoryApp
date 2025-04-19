@@ -1,68 +1,51 @@
-import React from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
-import { DraxProvider, DraxView, DraxList } from 'react-native-drax';
-import ProductCard from './ProductCard';
-import { updateProductCategory } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import KanbanBoard from '../components/KanbanBoard';
+import { getAllProducts, getAllCategories } from '../services/api';
 
-const KanbanBoard = ({ products, categories, onUpdate }) => {
-    const handleDragDrop = async (productId, newCategory) => {
+const KanbanScreen = () => {
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
         try {
-            await updateProductCategory(productId, newCategory);
-            console.log('KanbanBoard.js: Updated product category:', productId, newCategory);
-            onUpdate();
+            setLoading(true);
+            const [productsRes, categoriesRes] = await Promise.all([
+                getAllProducts(),
+                getAllCategories(),
+            ]);
+
+            // Ensure we have valid array data
+            setProducts(productsRes.data?.data || []);
+            setCategories(categoriesRes.data?.data || []);
+
         } catch (error) {
-            console.error('KanbanBoard.js: Error updating category:', error);
+            console.error('KanbanScreen.js: Error fetching data:', error);
+            Alert.alert('Error', 'Failed to load data');
+        } finally {
+            setLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     return (
-        <DraxProvider>
-            <ScrollView horizontal contentContainerStyle={{ padding: 10 }}>
-                {['Uncategorized', ...categories.map((cat) => cat.name)].map(
-                    (category) => (
-                        <DraxView
-                            key={category}
-                            style={[styles.column, { pointerEvents: 'auto' }]}
-                            receivingStyle={styles.receiving}
-                            onReceiveDragDrop={({ dragged }) =>
-                                handleDragDrop(dragged.payload.id, category)
-                            }
-                            payload={{ category }}
-                        >
-                            <Text style={styles.category}>{category}</Text>
-                            <DraxList
-                                data={
-                                    products?.filter((product) => product.category === category) || []
-                                }
-                                renderItemContent={({ item }) => <ProductCard product={item} />}
-                                keyExtractor={(item) => item._id}
-                                style={{ flexGrow: 0, pointerEvents: 'auto' }}
-                            />
-                        </DraxView>
-                    )
-                )}
-            </ScrollView>
-        </DraxProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+            {loading ? (
+                <Text>Loading...</Text>
+            ) : (
+                <KanbanBoard
+                    products={Array.isArray(products) ? products : []}
+                    categories={Array.isArray(categories) ? categories : []}
+                    onUpdate={fetchData}
+                />
+            )}
+        </SafeAreaView>
     );
 };
 
-const styles = StyleSheet.create({
-    column: {
-        width: 256,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 8,
-        marginRight: 12,
-        padding: 12,
-    },
-    receiving: {
-        borderWidth: 2,
-        borderColor: '#3B82F6',
-    },
-    category: {
-        fontSize: 18,
-        fontWeight: '700',
-        marginBottom: 8,
-    },
-});
-
-export default KanbanBoard;
+export default KanbanScreen;
