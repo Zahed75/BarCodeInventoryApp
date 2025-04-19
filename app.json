@@ -3,26 +3,32 @@
     "name": "BarcodeInventoryApp",
     "slug": "BarcodeInventoryApp",
     "version": "1.0.0",
+    "entryPoint": "App.js",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "permissions": [
+        "CAMERA"
+      ],
+      "bundleIdentifier": "com.anonymous.BarcodeInventoryApp"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "permissions": [
+        "CAMERA"
+      ],
+      "package": "com.anonymous.BarcodeInventoryApp"
     }
   }
 }
