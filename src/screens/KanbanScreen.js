@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native'; // All required components
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import KanbanBoard from '../components/KanbanBoard';
 import { getAllProducts, getAllCategories } from '../services/api';
